@@ -1,1 +1,14 @@
-# syntax=docker/dockerfile:1FROM golang:1.16-alpineWORKDIR /appCOPY go.mod ./COPY go.sum ./RUN go mod downloadCOPY *.go ./RUN go build -o /sample-applicationEXPOSE 8080CMD [ "/sample-application" ]
+# syntax=docker/dockerfile:1
+
+FROM golang:1.16 AS builder
+
+WORKDIR /app
+
+COPY . .
+RUN go mod download
+
+RUN CGO_ENABLED=0 GOOS=linux go build -a -tags sample-application -o sample-application -ldflags '-w' .
+
+FROM scratch
+COPY --from=builder /app/sample-application /sample-application
+ENTRYPOINT ["/sample-application"]
