@@ -1,0 +1,3 @@
+- Docker image notofication for hazelcast
+- $HAZELCAST_VERSION was not set as a default
+- 
