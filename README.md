@@ -10,3 +10,6 @@ hazelcast go-client interaction with hazelcast cloud
 ## ToDO
 - service deployment yaml
 - client interaction
+
+## Dependencies
+- hazelcast docker image
