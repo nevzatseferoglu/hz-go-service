@@ -25,14 +25,13 @@ func TestState_String(t *testing.T) {
 			"Available",
 		}
 
+		var curState State
 		for i, s := range got {
-			if _, err := setState(&appState, s); err != nil {
+			if _, err := setState(&curState, s); err != nil {
 				t.Error(err)
 			}
 
-			if appState.String() != want[i] {
-				assertCorrectMessage(t, appState.String(), want[i])
-			}
+			assertCorrectMessage(t, curState.String(), want[i])
 		}
 	})
 }

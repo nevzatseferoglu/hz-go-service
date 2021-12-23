@@ -11,4 +11,5 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -tags sample-application -o sample-appl
 
 FROM scratch
 COPY --from=builder /app/sample-application /sample-application
+
 ENTRYPOINT ["/sample-application"]
