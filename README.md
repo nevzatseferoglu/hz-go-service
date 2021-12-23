@@ -1,5 +1,5 @@
 ## sample-application
-hazelcast go-client interaction with running hazelcast cluster in cloud
+hazelcast go-client interaction on running hazelcast cluster in cloud
 
 ### Warning
 ```go
