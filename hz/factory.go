@@ -2,9 +2,15 @@ package hz
 
 import (
 	"context"
-	"github.com/hazelcast/hazelcast-go-client"
 	"log"
+
+	"github.com/hazelcast/hazelcast-go-client"
 )
+
+type ClientInfo struct {
+	Name    string `json:"name"`
+	Running bool   `json:"running"`
+}
 
 func NewHzClient() *hazelcast.Client {
 	config := hazelcast.Config{}
@@ -13,7 +19,7 @@ func NewHzClient() *hazelcast.Client {
 
 func NewHzClientWithConfig(config hazelcast.Config) *hazelcast.Client {
 	cc := &config.Cluster
-	cc.Network.SetAddresses("172.17.0.2:5701")
+	cc.Network.SetAddresses("localhost:5701")
 	cc.Discovery.UsePublicIP = true
 	ctx := context.TODO()
 

@@ -22,14 +22,15 @@ var (
 	config    *ServiceConfig
 	endpoints = [...]string{"config", "setConfig", "getMap", "setMap"}
 	queryMap  *hazelcast.Map
+	hzClient  *hazelcast.Client
 )
 
 type ServiceConfig struct {
-	ServiceName string `json:"serviceName"`
-	State       State  `json:"state"`
-	Port        int    `json:"port"`
-	Timeout     int64  `json:"timeout"`
-	HzClient    *hazelcast.Client
+	ServiceName  string        `json:"serviceName"`
+	State        State         `json:"state"`
+	Port         int           `json:"port"`
+	Timeout      int64         `json:"timeout"`
+	HzClientInfo hz.ClientInfo `json:"hzClientInfo"`
 }
 
 type State int
@@ -73,16 +74,18 @@ func setConfigHandler(rw http.ResponseWriter, r *http.Request) {
 
 		_, _ = setState(&config.State, s)
 	}
-
-	// redirect to config handler
-	http.Redirect(rw, r, fmt.Sprintf("/%s", endpoints[0]), http.StatusFound)
 }
 
 func getConfigHandler(rw http.ResponseWriter, _ *http.Request) {
 	rw.Header().Add("Content-Type", "application/json")
 	rw.WriteHeader(http.StatusOK)
 
-	rspJson, err := json.Marshal(*config)
+	serviceConfigResponse := struct {
+		ServiceConfig
+		hz.ClientInfo
+	}{*config, hz.ClientInfo{Name: hzClient.Name(), Running: hzClient.Running()}}
+
+	rspJson, err := json.Marshal(serviceConfigResponse)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -152,18 +155,26 @@ func newDefaultConfig() *ServiceConfig {
 		State:       Available,
 		Port:        8080,
 		Timeout:     10,
-		HzClient:    hz.NewHzClient(),
 	}
+
+	return c
+}
+
+func setupHzClientAndMap() {
+	hzClient = hz.NewHzClient()
 
 	var (
 		ctx context.Context
 		err error
 	)
-	if queryMap, err = c.HzClient.GetMap(ctx, "queryMap"); err != nil {
+	if queryMap, err = hzClient.GetMap(ctx, "queryMap"); err != nil {
 		log.Fatal(err)
 	}
+}
 
-	return c
+func setupService() {
+	config = newDefaultConfig()
+	setupHzClientAndMap()
 }
 
 func setMapHandler(rw http.ResponseWriter, r *http.Request) {
@@ -175,8 +186,6 @@ func setMapHandler(rw http.ResponseWriter, r *http.Request) {
 			log.Fatal(err)
 		}
 	}
-
-	http.Redirect(rw, r, fmt.Sprintf("/%s", endpoints[2]), http.StatusFound)
 }
 
 func getMapHandler(rw http.ResponseWriter, r *http.Request) {
@@ -195,9 +204,8 @@ func getMapHandler(rw http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-
 	// set default config
-	config = newDefaultConfig()
+	setupService()
 
 	// creates a server
 	router := mux.NewRouter()
@@ -205,14 +213,14 @@ func main() {
 	router.HandleFunc("/readiness", readinessHandler)
 	router.HandleFunc(fmt.Sprintf("/%s", endpoints[0]), getConfigHandler)
 	router.HandleFunc(fmt.Sprintf("/%s", endpoints[1]), setConfigHandler)
-	router.HandleFunc(fmt.Sprintf("/%s", endpoints[2]), getMapHandler)
 	router.HandleFunc(fmt.Sprintf("/%s", endpoints[3]), setMapHandler)
+	router.HandleFunc(fmt.Sprintf("/%s", endpoints[2]), getMapHandler)
 
 	srv := &http.Server{
-		Handler: router,
-		Addr:    fmt.Sprintf(":%d", config.Port),
-		//ReadTimeout:  time.Duration(config.Timeout) * time.Second,
-		//WriteTimeout: time.Duration(config.Timeout) * time.Second,
+		Handler:      router,
+		Addr:         fmt.Sprintf(":%d", config.Port),
+		ReadTimeout:  time.Duration(config.Timeout) * time.Second,
+		WriteTimeout: time.Duration(config.Timeout) * time.Second,
 	}
 
 	go func() {
