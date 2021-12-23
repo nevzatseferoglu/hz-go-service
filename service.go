@@ -5,15 +5,17 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/gorilla/mux"
-	"github.com/hazelcast/hazelcast-go-client"
-	"github.com/nevzatseferoglu/sample-application/hz"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/gorilla/mux"
+	"github.com/hazelcast/hazelcast-go-client"
+
+	"github.com/nevzatseferoglu/sample-application/hz"
 )
 
 var (
