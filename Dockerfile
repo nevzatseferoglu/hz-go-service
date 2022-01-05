@@ -1,15 +1,15 @@
 # syntax=docker/dockerfile:1
 
-FROM golang:1.16 AS builder
+FROM golang:1.16-alpine
 
 WORKDIR /app
 
-COPY . .
+COPY go.mod ./
+COPY go.sum ./
 RUN go mod download
 
-RUN CGO_ENABLED=0 GOOS=linux go build -a -tags sample-application -o sample-application -ldflags '-w' .
+COPY *.go ./
 
-FROM scratch
-COPY --from=builder /app/sample-application /sample-application
+RUN go build -o /sample-application
 
-ENTRYPOINT ["/sample-application"]
+CMD [ "/sample-application" ]

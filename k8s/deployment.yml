@@ -29,7 +29,7 @@ spec:
       containers:
         - name: sample-application
           image: nevzatseferoglu/sample-application:1.0.0
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
           livenessProbe: # prevents deadlock
