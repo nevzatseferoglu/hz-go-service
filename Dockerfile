@@ -1,15 +1,16 @@
 # syntax=docker/dockerfile:1
 
-FROM golang:1.16-alpine
+FROM golang:1.17-alpine AS build
 
 WORKDIR /app
 
-COPY go.mod ./
-COPY go.sum ./
+COPY . .
 RUN go mod download
-
-COPY *.go ./
 
 RUN go build -o /sample-application
 
-CMD [ "/sample-application" ]
+FROM scratch
+
+COPY --from=build /sample-application /sample-application
+
+ENTRYPOINT ["/sample-application"]

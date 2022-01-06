@@ -1,20 +1,13 @@
 ## sample-application
-hazelcast go-client interaction on running hazelcast cluster in cloud
+hazelcast go-client interaction on running hazelcast cluster in local cloud through minikube
 
-### Warning
-```go
-cc.Network.SetAddresses("<EXTERNAL-IP>:5701")
-```
-- `<EXTERNAL-IP>` is needed to be set explicitly as hardcoded. There is no auto-discovery mechanism to determine ip address. 
-
-### smart-client-deployment
-- https://guides.hazelcast.org/kubernetes-external-client/#_smart_client
-
-### unisocket-client-deployment
-- https://guides.hazelcast.org/kubernetes-external-client/#_unisocket_client
-
-### ToDO
-- Redirection on `config` and `map` endpoints.
-
-### Dependencies
-- Running hazelcast cluster somewhere else
+## step by step
+- `minikube start`
+- `./operator.sh`
+- Make sure that hazelcast members are running on the cloud by checking
+  - `kubectl logs pod/hazelcast-0`
+- The application can be deployed to that cluster.
+  - `kubectl apply -f deployment.yml`
+  
+## Network
+- Application tries to get an `ClusterIP` of running hazelcast service through kubernetes api. Then, expose itself to outside from the port `8081`.

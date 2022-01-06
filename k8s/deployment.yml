@@ -28,25 +28,10 @@ spec:
     spec:
       containers:
         - name: sample-application
-          image: nevzatseferoglu/sample-application:1.0.0
+          image: nevzatseferoglu/sample-application:v1.0
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
-          livenessProbe: # prevents deadlock
-            httpGet:
-              path: /health
-              port: 8080
-              scheme: HTTP
-            initialDelaySeconds: 5
-            periodSeconds: 15
-            timeoutSeconds: 5
-          readinessProbe: # prevents deadlock
-            httpGet:
-              path: /readiness
-              port: 8080
-              scheme: HTTP
-            initialDelaySeconds: 5
-            timeoutSeconds: 1
 
 # Readiness probes indicate when an application is ready to serve traffic.
 # If a readiness check fails then the container will be marked as not ready and will be removed from any load balancers.
