@@ -3,12 +3,9 @@ package hz
 import (
 	"context"
 	"log"
-	"time"
 
 	"github.com/hazelcast/hazelcast-go-client"
-	"github.com/hazelcast/hazelcast-go-client/cluster"
 	"github.com/hazelcast/hazelcast-go-client/logger"
-	"github.com/hazelcast/hazelcast-go-client/types"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -21,17 +18,17 @@ type ClientInfo struct {
 }
 
 func getHazelcastClusterIP() (string, error) {
+	// getting config for the client inside kuberneetes cluster
 	config, err := rest.InClusterConfig()
 	if err != nil {
 		return "", err
 	}
-
-	// creates the clientset
+	// creates clientset for given config
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		return "", err
 	}
-
+	// return cluster services resources
 	hzService, err := clientset.CoreV1().Services("default").Get(context.TODO(), "hazelcast", metav1.GetOptions{})
 	if errors.IsNotFound(err) {
 		log.Printf("Service hazelcast not found in default namespace\n")
@@ -58,24 +55,15 @@ func NewHzClientWithConfig(ctx context.Context, config hazelcast.Config) (*hazel
 	config.SetLabels()
 
 	cc := &config.Cluster
-	cc.Name = "dev"
-	cc.HeartbeatTimeout = types.Duration(5 * time.Second)
-	cc.HeartbeatInterval = types.Duration(60 * time.Second)
-	cc.InvocationTimeout = types.Duration(120 * time.Second)
-	cc.RedoOperation = false
-	cc.Unisocket = false
-	cc.SetLoadBalancer(cluster.NewRoundRobinLoadBalancer())
 
 	// cluster address
-	base, err := getHazelcastClusterIP()
-	if err != nil {
-		return nil, err
-	}
-	cc.Network.SetAddresses(base + ":5701")
-	cc.Discovery.UsePublicIP = false
+	// base, err := getHazelcastClusterIP()
+	// if err != nil {
+	//	return nil, err
+	// }
 
-	config.Stats.Enabled = false
-	config.Stats.Period = types.Duration(5 * time.Second)
+	cc.Network.SetAddresses("hazelcast.default.svc" + ":5701")
+	cc.Discovery.UsePublicIP = false
 
 	config.Logger.Level = logger.TraceLevel
 

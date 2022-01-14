@@ -5,4 +5,4 @@
 kubectl apply -f https://repository.hazelcast.com/operator/bundle-5.0.yaml
 
 # deploy hazelcast through operator
-kubectl apply -f k8s/hazelcast
+kubectl apply -f k8s/hazelcast.yml

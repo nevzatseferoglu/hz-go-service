@@ -7,10 +7,10 @@ WORKDIR /app
 COPY . .
 RUN go mod download
 
-RUN go build -o /sample-application
+RUN go build -o sample-application
 
-FROM scratch
+FROM alpine
 
-COPY --from=build /sample-application /sample-application
+COPY --from=build /app/sample-application /app/binary
 
-ENTRYPOINT ["/sample-application"]
+CMD ["/app/binary"]
