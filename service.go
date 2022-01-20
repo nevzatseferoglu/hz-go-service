@@ -14,7 +14,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/hazelcast/hazelcast-go-client"
 
-	"github.com/nevzatseferoglu/sample-application/hz"
+	"github.com/nevzatseferoglu/hz-go-service/hz"
 )
 
 var (
@@ -60,7 +60,14 @@ func getMapHandler(rw http.ResponseWriter, r *http.Request) {
 	rw.Header().Add("Content-Type", "application/json")
 	rw.WriteHeader(http.StatusOK)
 
-	log.Println(storage.myMap)
+	entries, err := storage.myMap.GetEntrySet(r.Context())
+	if err != nil {
+		http.Error(rw, "error on get map", http.StatusInternalServerError)
+	}
+	log.Println("My distributed map entries are: ")
+	for _, entry := range entries {
+		log.Printf("key: %v, value: %v", entry.Key, entry.Value)
+	}
 
 	//rspJson, err := json.Marshal(storage.myMap)
 	//if err != nil {
@@ -84,24 +91,23 @@ func readinessHandler(rw http.ResponseWriter, _ *http.Request) {
 func newDefaultConfig() *ServiceConfig {
 	// default config properties
 	c := &ServiceConfig{
-		ServiceName: "sample-application",
+		ServiceName: "hz-go-service",
 		Port:        8080,
 		Timeout:     10 * time.Second,
 	}
-
 	return c
 }
 
-func newInmemoryHzStorage(ctx context.Context) (*InMemoryHzStorage, error) {
-	storage.hzClient, _ = hz.NewHzClient(ctx)
-
-	var err error
-	storage.myMap, err = storage.hzClient.GetMap(ctx, "myDistributedMap")
+func newInMemoryHzStorage(ctx context.Context) (*InMemoryHzStorage, error) {
+	newClient, err := hz.NewHzClient(ctx)
 	if err != nil {
 		return nil, err
 	}
-
-	return &InMemoryHzStorage{hzClient: storage.hzClient, myMap: storage.myMap}, nil
+	newMap, err := newClient.GetMap(ctx, "myDistributedMap")
+	if err != nil {
+		return nil, err
+	}
+	return &InMemoryHzStorage{hzClient: newClient, myMap: newMap}, nil
 }
 
 func newServer(router *mux.Router, config *ServiceConfig) *http.Server {
@@ -114,43 +120,39 @@ func newServer(router *mux.Router, config *ServiceConfig) *http.Server {
 }
 
 func main() {
+	// default context
 	ctx := context.TODO()
-
 	var err error
-
-	// set config as default
+	// set service config as default
 	config = newDefaultConfig()
-
-	storage, err = newInmemoryHzStorage(ctx)
+	// create new client instance
+	storage, err = newInMemoryHzStorage(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	// put current map
 	_, err = storage.myMap.Put(ctx, "John", 1)
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	// creates a server
 	router := mux.NewRouter()
-
 	// health checks for kubernetes
 	router.HandleFunc("/health", healthHandler)
 	router.HandleFunc("/readiness", readinessHandler)
-
 	// service configuration handler
 	router.HandleFunc(fmt.Sprintf("/%s/get", endpoints[0]), getConfigHandler)
-
 	// hazelcast map handler
 	router.HandleFunc(fmt.Sprintf("/%s/get", endpoints[1]), getMapHandler)
-
+	// create server instance
 	srv := newServer(router, config)
-
+	// start http server
 	go func() {
 		log.Println("Starting server...")
 		log.Fatal(srv.ListenAndServe())
 	}()
-
+	// handle potential incoming errors
 	handleSignal(srv)
 }
 

@@ -7,10 +7,10 @@ WORKDIR /app
 COPY . .
 RUN go mod download
 
-RUN go build -o sample-application
+RUN go build -o hz-go-service
 
 FROM alpine
 
-COPY --from=build /app/sample-application /app/binary
+COPY --from=build /app/hz-go-service /app/binary
 
 CMD ["/app/binary"]

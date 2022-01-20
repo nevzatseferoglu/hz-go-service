@@ -17,3 +17,4 @@ httpGet:
 initialDelaySeconds: 5
 timeoutSeconds: 1
 ```
+minikube service --url hz-go-servic

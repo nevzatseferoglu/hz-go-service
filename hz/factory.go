@@ -43,30 +43,30 @@ func getHazelcastClusterIP() (string, error) {
 	}
 
 	return hzService.Spec.ClusterIP, nil
-}
-
-func NewHzClient(ctx context.Context) (*hazelcast.Client, error) {
-	config := hazelcast.Config{}
-	return NewHzClientWithConfig(ctx, config)
-}
-
-func NewHzClientWithConfig(ctx context.Context, config hazelcast.Config) (*hazelcast.Client, error) {
-	config.ClientName = "my-go-client"
-	config.SetLabels()
-
-	cc := &config.Cluster
-
 	// cluster address
 	// base, err := getHazelcastClusterIP()
 	// if err != nil {
 	//	return nil, err
 	// }
+}
 
+func NewHzClient(ctx context.Context) (*hazelcast.Client, error) {
+	config := hazelcast.Config{
+		ClientName: "hz-go-service-client",
+	}
+	cc := &config.Cluster
 	cc.Network.SetAddresses("hazelcast.default.svc" + ":5701")
 	cc.Discovery.UsePublicIP = false
+	cc.Unisocket = true
+	config.Logger.Level = logger.InfoLevel
+	client, err := NewHzClientWithConfig(ctx, config)
+	if err != nil {
+		return nil, err
+	}
+	return client, nil
+}
 
-	config.Logger.Level = logger.TraceLevel
-
+func NewHzClientWithConfig(ctx context.Context, config hazelcast.Config) (*hazelcast.Client, error) {
 	client, err := hazelcast.StartNewClientWithConfig(ctx, config)
 	if err != nil {
 		return nil, err
