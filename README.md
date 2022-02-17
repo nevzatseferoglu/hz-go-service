@@ -1,4 +1,4 @@
-## sample-application
+## hz-go-service
 hazelcast go-client interaction on running hazelcast cluster in local cloud through minikube
 
 ## step by step
