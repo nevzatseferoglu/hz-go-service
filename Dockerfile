@@ -5,6 +5,9 @@ FROM golang:1.17-alpine AS build
 WORKDIR /app
 
 COPY . .
+
+ENV GOARCH=amd64
+
 RUN go mod download
 
 RUN go build -o hz-go-service

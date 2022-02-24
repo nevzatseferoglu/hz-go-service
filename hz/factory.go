@@ -10,6 +10,7 @@ import (
 
 const localTest = false
 
+// ClientInfo contains info about client
 type ClientInfo struct {
 	ClientName    string `json:"clientName"`
 	ClientRunning bool   `json:"clientRunning"`

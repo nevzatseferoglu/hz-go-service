@@ -14,15 +14,17 @@ Before starting, it is highly recommended using minikube on Docker Desktop. The 
   - Deploy necessary yamls to k8s
 - Make sure that hazelcast members are running on the cloud by checking
   - `kubectl logs pod/hazelcast-0`
+- Port internal k8s port to localhost
+  - `kubectl port-forward service/hz-go-service 8080:8080`
+  - First 8080 represents service port running inside k8s, the second one represents which port will be used for the local environment.
 
 ## Deleting sources from the k8s via script
 - `./delete-deployments.sh`
   - Remove deployed sources from the k8s.
-- `minukbe delete`
 
 ## Deleting sources via minikube and docker
 Warning: Those instructions clear all your docker and minikube environment allocated resources.
-- `minikube stop`
+- `minikube delete -all`
 - `docker container rm $(docker ps -aq)`
   - Removes all running and paused containers from the docker.
   - If you want to delete only the container that is related to service, please get the ID of the running container then remove from the docker.
