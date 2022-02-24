@@ -8,19 +8,21 @@ import (
 	"github.com/hazelcast/hazelcast-go-client/logger"
 )
 
-const withoutKubernetes = true
+const localTest = false
 
 type ClientInfo struct {
 	ClientName    string `json:"clientName"`
 	ClientRunning bool   `json:"clientRunning"`
+	MapSize       int    `json:"mapSize"`
 }
 
+// NewHzClient Return hazelcast client instance with default config.
 func NewHzClient(ctx context.Context) (*hazelcast.Client, error) {
 	config := hazelcast.Config{
 		ClientName: "hz-go-service-client",
 	}
 	cc := &config.Cluster
-	if true {
+	if localTest {
 		cc.Network.SetAddresses(fmt.Sprintf("%s:%s", "localhost", "5701"))
 	} else {
 		cc.Network.SetAddresses(fmt.Sprintf("%s:%s", "hazelcast.default.svc", "5701"))
@@ -35,6 +37,7 @@ func NewHzClient(ctx context.Context) (*hazelcast.Client, error) {
 	return client, nil
 }
 
+// NewHzClientWithConfig Return new hazelcast client instance with given config.
 func NewHzClientWithConfig(ctx context.Context, config hazelcast.Config) (*hazelcast.Client, error) {
 	client, err := hazelcast.StartNewClientWithConfig(ctx, config)
 	if err != nil {
