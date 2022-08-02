@@ -1,8 +1,7 @@
 #!/bin/bash
 
-# assumes that there is a running cluster with configured kubectl
-kubectl apply -f https://repository.hazelcast.com/operator/bundle-5.0.yaml
-
-# deploy hazelcast through operator
+# Creates k8s resources according to given sources.
+kubectl apply -f https://repository.hazelcast.com/operator/bundle-latest.yaml
 kubectl apply -f k8s/hazelcast.yaml
 kubectl apply -f k8s/deployment.yaml
+kubectl apply -f k8s/ingress.yaml
